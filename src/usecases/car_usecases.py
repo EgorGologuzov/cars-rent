@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from models import Car
 from utils import HttpResponse
-from schemas import Meta
+from schemas import Meta, Car_Create, Car_Update
 
 
 class Car_UseCases:
@@ -10,8 +10,21 @@ class Car_UseCases:
     self.db = db
 
 
-  def get_any(self, type, status, min_year, page, limit):
-    query = self.db.query(Car)
+  def get_one(self, car_id):
+
+    car = self.db.query(Car).filter(Car.id == car_id, Car.is_active).first()
+
+    if not car:
+      raise HttpResponse.not_found("Автомобиль не найден")
+    
+    Meta.deserialize_meta(car)
+  
+    return car
+  
+
+  def get_any(self, type=None, status=None, min_year=None, page=None, limit=None):
+
+    query = self.db.query(Car).filter(Car.is_active == True)
 
     page = page if page else 0
     limit = limit if limit else 100
@@ -27,22 +40,12 @@ class Car_UseCases:
     Meta.deserialize_meta_foreach(cars)
 
     return cars
-
-
-  def get_one(self, car_id):
-    car = self.db.query(Car).filter(Car.id == car_id).first()
-
-    if not car:
-      raise HttpResponse.not_found("Автомобиль не найден")
-    
-    Meta.deserialize_meta(car)
-  
-    return car
   
 
-  def add_car(self, **car_data):
-    car = Car(**car_data)
-    Meta.add_meta(car, 1)
+  def add_car(self, creator_id, create_data: Car_Create):
+
+    car = Car(**create_data.model_dump())
+    Meta.add_meta(car, creator_id)
 
     self.db.add(car)
     self.db.commit()
@@ -53,32 +56,29 @@ class Car_UseCases:
     return car
   
 
-  def update_car(self, car_id, **car_data):
-    car = self.db.query(Car).filter(Car.id == car_id).first()
+  def update_car(self, updater_id, car_id, update_data: Car_Update):
 
-    if not car:
-      raise HttpResponse.not_found("Автомобиль не найден")
+    car = self.get_one(car_id)
 
-    for field, value in car_data.items():
+    for field, value in update_data.model_dump(exclude_unset=True).items():
       setattr(car, field, value)
 
-    Meta.update_meta(car, 1)
+    Meta.update_meta(car, updater_id)
 
     self.db.commit()
     self.db.refresh(car)
-
     Meta.deserialize_meta(car)
 
     return car
   
 
-  def delete_car(self, car_id):
-    car = self.db.query(Car).filter(Car.id == car_id).first()
-  
-    if not car:
-      raise HttpResponse.not_found("Автомобиль не найден")
+  def delete_car(self, updater_id, car_id):
 
-    self.db.delete(car)
+    car = self.get_one(car_id)
+
+    car.is_active = False
+    Meta.update_meta(car, updater_id)
+
     self.db.commit()
 
     return HttpResponse.ok_message("Автомобиль удален")

@@ -1,5 +1,4 @@
-from enum import Enum
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field
 from typing import Optional
 from .meta_schemas import Meta
 from models import CarType, CarStatus
@@ -26,7 +25,7 @@ class Car_ReturnForClients(BaseModel):
   status: CarStatus
 
 
-class Car_ReturnForEmployees(BaseModel):
+class Car_ReturnForManagers(BaseModel):
   id: int
   brand: str | None
   model: str | None
@@ -35,10 +34,6 @@ class Car_ReturnForEmployees(BaseModel):
   price_per_day: float
   status: CarStatus
   meta: Meta
-
-  model_config = ConfigDict(
-    arbitrary_types_allowed=True
-  )
 
 
 class Car_Create(BaseModel):

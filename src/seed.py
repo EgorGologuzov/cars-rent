@@ -14,25 +14,25 @@ with get_db().__next__() as session:
   # Users
   users = [
       User(
-          email="admin@rent.com",
+          email="admin@example.com",
           hashed_password=get_password_hash("12345678"),
           full_name="Admin Adminov",
           role=UserRole.ADMIN,
       ),
       User(
-          email="manager@rent.com",
+          email="manager@example.com",
           hashed_password=get_password_hash("12345678"),
           full_name="Manager Managerov",
           role=UserRole.MANAGER,
       ),
       User(
-          email="client1@rent.com",
+          email="client@example.com",
           hashed_password=get_password_hash("12345678"),
           full_name="Client Clientov",
           role=UserRole.CLIENT,
       ),
       User(
-          email="client2@rent.com",
+          email="user@example.com",
           hashed_password=get_password_hash("12345678"),
           full_name="Petr Petrov",
           role=UserRole.CLIENT,
@@ -133,5 +133,5 @@ with get_db().__next__() as session:
 
   session.commit()
 
-  print("Данные успешно добалвены в базу данных!")
+  print("Данные успешно добавлены в базу данных!")
 

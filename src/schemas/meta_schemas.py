@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 from datetime import datetime, timezone
 import json
 
@@ -30,23 +30,17 @@ class Meta(BaseModel):
   @staticmethod
   def update_meta(model, updator_id):
     now = datetime.now(timezone.utc)
-    meta = Meta(**json.loads(model.meta))
+    meta = Meta(**json.loads(model.meta)) if isinstance(model.meta, str) else model.meta
     meta.updated_by = updator_id
     meta.updated_at = now
     model.meta = meta.to_json()
 
   @staticmethod
   def deserialize_meta(model):
-    model.meta = Meta(**json.loads(model.meta))
+    model.meta = Meta(**json.loads(model.meta)) if isinstance(model.meta, str) else model.meta
 
   @staticmethod
   def deserialize_meta_foreach(list):
     for model in list:
       Meta.deserialize_meta(model)
   
-  model_config = ConfigDict(
-    json_encoders={
-        datetime: lambda v: v.isoformat()
-    },
-    arbitrary_types_allowed=True
-  )

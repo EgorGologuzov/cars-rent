@@ -1,5 +1,5 @@
 from enum import Enum
-from sqlalchemy import (Column, Integer, String, Float, Enum as SqlEnum)
+from sqlalchemy import (Column, Integer, String, Float, Boolean, Enum as SqlEnum)
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -23,8 +23,9 @@ class Car(Base):
   __tablename__ = "cars"
 
   id = Column(Integer, primary_key=True, index=True)
-  brand = Column(String(128), index=True)
-  model = Column(String(128), index=True)
+  is_active = Column(Boolean, default=True, nullable=False)
+  brand = Column(String(128))
+  model = Column(String(128))
   year = Column(Integer)
   type = Column(SqlEnum(CarType))
   price_per_day = Column(Float, nullable=False)

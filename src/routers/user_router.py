@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, Path, Query, Body
 from typing import List, Optional
 from models import UserRole
 from database import get_db
@@ -81,6 +81,40 @@ p_user_id = Path(
   }
 )
 
+b_sign_in_data = Body(
+  default=...,
+  openapi_examples={
+    "Клиент": {"value": {
+      "email": "client@example.com",
+      "password": "12345678"
+    }},
+    "Менеджер": {"value": {
+      "email": "manager@example.com",
+      "password": "12345678"
+    }},
+    "Админ": {"value": {
+      "email": "admin@example.com",
+      "password": "12345678"
+    }},
+  }
+)
+
+b_sign_up_data = Body(
+  default=...,
+  openapi_examples={
+    "normal": {
+      "email": "new.user.1@example.com",
+      "full_name": "John Doe",
+      "password": "12345678",
+    },
+    "invalid": {
+      "email": "new.user.1@@example.com",
+      "full_name": "John Doe",
+      "password": "1234567",
+    },
+  }
+)
+
 
 def get_user_use_cases(db = Depends(get_db)):
   return User_UseCases(db)
@@ -93,9 +127,22 @@ def get_user_use_cases(db = Depends(get_db)):
   tags=["Общий доступ"],
 )
 def sign_in(
-  sign_in_data: SignInData,
+  sign_in_data: SignInData = b_sign_in_data,
   users: User_UseCases = Depends(get_user_use_cases),
 ):
+  '''
+  Чтобы авторизоваться:
+  
+  - выберите роль из примеров Body параметра, или введеите данные авторизации сами
+  - скопируйте access_token из ответа
+  - нажмите Authorize вверху страницы, вставьте токен в поле Value
+  - нажмите Authorize, затем Close
+
+  Токен будет действителен в течении часа
+
+  Токен открывает доступ к эндпоинтам только одной роли пользователя, 
+  не забывайте менять токен при тестировании эндпоинтов разных ролей
+  '''
   return users.sign_in(sign_in_data)
 
 
@@ -106,9 +153,13 @@ def sign_in(
   tags=["Общий доступ"],
 )
 def sign_up_client(
-  sign_up_data: SignUpData,
+  sign_up_data: SignUpData = b_sign_up_data,
   users: User_UseCases = Depends(get_user_use_cases),
 ):
+  '''
+  Открытый эндпоинт для регистрации пользователей роли client. 
+  Для регистрации пользователей других ролей используйте соответсвующий эндпоинт админа.
+  '''
   return users.sign_up(GUEST_USER_ID, UserRole.CLIENT, sign_up_data)
 
 

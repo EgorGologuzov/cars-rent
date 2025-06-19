@@ -25,6 +25,14 @@ def custom_openapi():
       }
   }
 
+  openapi_schema["tags"] = [
+    {"name": "Общий доступ"},
+    {"name": "Основные"},
+    {"name": "Клиент"},
+    {"name": "Менеджер"},
+    {"name": "Админ"},
+  ]
+
   app.openapi_schema = openapi_schema
   return openapi_schema
 

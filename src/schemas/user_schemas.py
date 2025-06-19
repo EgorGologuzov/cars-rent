@@ -5,8 +5,8 @@ from datetime import datetime
 
 
 # f - field; rf - required field
-f_email = Field(None, min_length=1, max_length=512, example="user@example.com")
-rf_email = Field(..., min_length=1, max_length=512, example="user@example.com")
+f_email = Field(None, min_length=1, max_length=512, example="new.user.1@example.com")
+rf_email = Field(..., min_length=1, max_length=512, example="new.user.1@example.com")
 f_full_name = Field(None, min_length=1, max_length=256, example="John Doe")
 rf_full_name = Field(..., min_length=1, max_length=256, example="John Doe")
 f_password = Field(None, min_length=8, max_length=256, example="12345678")

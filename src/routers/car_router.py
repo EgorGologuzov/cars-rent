@@ -36,6 +36,7 @@ q_type = Query(
   default=None,
   description=f"Тип автомобиля",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": CarType.SEDAN},
     "invalid": {"value": "faketype"},
   }
@@ -45,6 +46,7 @@ q_status = Query(
   default=None,
   description=f"Статус автомобиля",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": CarStatus.AVAILABLE},
     "invalid": {"value": "fakestatus"},
   }
@@ -52,9 +54,12 @@ q_status = Query(
 
 q_min_year = Query(
   default=None,
+  ge=1900,
   description=f"Минимальный год выпуска",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": 2022},
+    "invalid": {"value": 1899},
   }
 )
 
@@ -77,7 +82,7 @@ def get_car_use_cases(db = Depends(get_db)):
   path="/c/cars",
   response_model=List[Car_ReturnFor_Client],
   summary="Получение списка автомобилей",
-  tags=["Клиент"],
+  tags=["Клиент", "Основные"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
 )
 def get_cars_for_clients(
@@ -89,6 +94,9 @@ def get_cars_for_clients(
   limit: Optional[int] = q_limit,
   claims: TokenData = Depends(auth(UserRole.CLIENT)),
 ):
+  '''
+  Получение списка автомобилей по набору фильтров
+  '''
   return cars.get_any(type, status, min_year, page, limit)
 
 

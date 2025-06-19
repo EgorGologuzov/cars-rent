@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, Path, Query, Body
 from typing import List, Optional
 from schemas import Review_Return, Review_Create, Message, Review_Update
 from models import UserRole
@@ -6,7 +6,6 @@ from database import get_db
 from usecases import Review_UseCases
 from schemas import TokenData
 from auth import auth, PROTECTED_ENDPOINT_SECURITY
-from datetime import datetime, timezone, timedelta, date
 
 
 router = APIRouter()
@@ -32,11 +31,11 @@ q_limit = Query(
   }
 )
 
-
 q_car_id = Query(
   default=None,
   description="Уникальный id автомобиля (целое число)",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": 1},
     "invalid": {"value": "NaN"},
   }
@@ -46,6 +45,7 @@ q_user_id = Query(
   default=None,
   description="Уникальный id пользователя (целое число)",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": 3},
     "invalid": {"value": "NaN"},
   }
@@ -55,6 +55,7 @@ q_rating = Query(
   default=None,
   description="Оценка автомобиля по шкале от 1 до 5 (целое число)",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": 5},
     "invalid": {"value": "NaN"},
   }
@@ -67,6 +68,22 @@ p_review_id = Path(
   openapi_examples={
     "normal": {"value": 1},
     "invalid": {"value": "NaN"},
+  }
+)
+
+b_rental_create = Body(
+  default=...,
+  openapi_examples={
+    "normal": {
+      "car_id": 1,
+      "rating": 4,
+      "comment": "Отличный автомобиль, всем рекомендую!"
+    },
+    "invalid": {
+      "car_id": -1,
+      "rating": 8,
+      "comment": "Отличный автомобиль, всем рекомендую!"
+    },
   }
 )
 
@@ -146,7 +163,7 @@ def get_review_for_admin(
   path="/c/reviews",
   response_model=Review_Return,
   summary="Создание отзыва",
-  tags=["Клиент"],
+  tags=["Клиент", "Основные"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
 )
 def add_review(
@@ -154,6 +171,9 @@ def add_review(
   reviews: Review_UseCases = Depends(get_review_use_cases),
   claims: TokenData = Depends(auth(UserRole.CLIENT)),
 ):
+  '''
+  Добавление отзыва клиента на автомобиль, клиент может оставить только один отзыв на каждый автомобиль.
+  '''
   return reviews.add_review(claims.user_id, create_data)
 
 

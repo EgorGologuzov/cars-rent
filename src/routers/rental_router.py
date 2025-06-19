@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Depends, Path, Query, Body
 from typing import List, Optional
 from schemas import Rental_Return, Rental_Create, Message, Rental_ReturnIn_Schedule, Rental_TotalCost
 from models import RentalStatus, UserRole
@@ -36,6 +36,7 @@ q_car_id = Query(
   default=None,
   description="Уникальный id автомобиля (целое число)",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": 1},
     "invalid": {"value": "NaN"},
   }
@@ -45,6 +46,7 @@ q_period_start = Query(
   default=None,
   description="Начальная дата периода. Фильтр пройдут все записы период которых пересекается с заданным периодом.",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": (datetime.now(timezone.utc) + timedelta(days=1)).date().isoformat()},
     "invalid": {"value": "2024-08-0104:39:06"},
   }
@@ -54,6 +56,7 @@ q_period_end = Query(
   default=None,
   description="Конечная дата периода. Фильтр пройдут все записы период которых пересекается с заданным периодом.",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": (datetime.now(timezone.utc) + timedelta(days=10)).date().isoformat()},
     "invalid": {"value": "2024-08-0104:39:06"},
   }
@@ -63,6 +66,7 @@ q_status = Query(
   default=None,
   description=f"Статус арнеды",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": RentalStatus.ACTIVE},
     "invalid": {"value": "fakestatus"},
   }
@@ -72,6 +76,7 @@ q_user_id = Query(
   default=None,
   description="Уникальный id пользователя (целое число)",
   openapi_examples={
+    "empty": {"value": None},
     "normal": {"value": 3},
     "invalid": {"value": "NaN"},
   }
@@ -133,6 +138,23 @@ rq_period_end = Query(
   }
 )
 
+b_rental_create = Body(
+  default=...,
+  openapi_examples={
+    "normal": {
+      "car_id": 1,
+      "start_date": (datetime.now(timezone.utc) + timedelta(days=2)).date().isoformat(),
+      "end_date": (datetime.now(timezone.utc) + timedelta(days=10)).date().isoformat(),
+    },
+    "invalid": {
+      "car_id": -1,
+      "start_date": (datetime.now(timezone.utc) - timedelta(days=2)).date().isoformat(),
+      "end_date": (datetime.now(timezone.utc) + timedelta(days=10)).date().isoformat(),
+    },
+  }
+)
+
+
 def get_rental_use_cases(db = Depends(get_db)):
   return Rental_UseCases(db)
 
@@ -141,7 +163,7 @@ def get_rental_use_cases(db = Depends(get_db)):
   path="/c/rentals",
   response_model=List[Rental_Return],
   summary="Получение списка своих аренд",
-  tags=["Клиент"],
+  tags=["Клиент", "Основные"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
 )
 def get_rentals_for_client(
@@ -152,6 +174,9 @@ def get_rentals_for_client(
   page: Optional[int] = q_page,
   limit: Optional[int] = q_limit,
 ):
+  '''
+  Получение списка аренд (только принадлежащих тому же клиенту, которому принадлжеит токен авторизации) по набору фильтров
+  '''
   return rentals.get_any(car_id=car_id, user_id=claims.user_id, status=status, page=page, limit=limit)
 
 
@@ -159,7 +184,7 @@ def get_rentals_for_client(
   path="/c/rentals/schedule",
   response_model=List[Rental_ReturnIn_Schedule],
   summary="Получение расписания автомобиля за период",
-  tags=["Клиент"],
+  tags=["Клиент", "Основные"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
 )
 def get_cars_schedule_for_client(
@@ -169,6 +194,13 @@ def get_cars_schedule_for_client(
   period_start: date = rq_period_start,
   period_end: date = rq_period_end,
 ):
+  '''
+  Получение списка обезличенных аренд для автомобиля за период времени между двумя датами.
+
+  Если в ответе есть аренды со статусом active или pending, то офомрить аренду этого автомобиля на этот период не получиться
+
+  По полученному списку аренд можно составить таблицу свободных дат для этого авто за заданный период
+  '''
   return rentals.get_any(car_id=car_id, period_start=period_start, period_end=period_end)
 
 
@@ -185,8 +217,8 @@ def get_rentals_for_manager(
   car_id: Optional[int] = q_car_id,
   user_id: Optional[int] = q_user_id,
   status: Optional[RentalStatus] = q_status,
-  period_start: date = q_period_start,
-  period_end: date = q_period_end,
+  period_start: Optional[date] = q_period_start,
+  period_end: Optional[date] = q_period_end,
   page: Optional[int] = q_page,
   limit: Optional[int] = q_limit,
 ):
@@ -203,9 +235,9 @@ def get_rentals_for_manager(
 def get_cars_schedule_for_manager(
   rentals: Rental_UseCases = Depends(get_rental_use_cases),
   claims: TokenData = Depends(auth(UserRole.MANAGER)),
-  car_id: Optional[int] = rq_car_id,
-  period_start: Optional[date] = rq_period_start,
-  period_end: Optional[date] = rq_period_end,
+  car_id: int = rq_car_id,
+  period_start: date = rq_period_start,
+  period_end: date = rq_period_end,
 ):
   return rentals.get_any(car_id=car_id, period_start=period_start, period_end=period_end)
 
@@ -244,14 +276,17 @@ def get_rental_for_manager(
   path="/c/rentals/calc/total/cost",
   response_model=Rental_TotalCost,
   summary="Расчет стоимости аренды авто за период",
-  tags=["Клиент"],
+  tags=["Клиент", "Основные"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
 )
 def calc_rental_total_cost_for_client(
-  rental_data: Rental_Create,
+  rental_data: Rental_Create = b_rental_create,
   rentals: Rental_UseCases = Depends(get_rental_use_cases),
   claims: TokenData = Depends(auth(UserRole.CLIENT)),
 ):
+  '''
+  Расчет стоимости арнеды с учетом скидок за длительную аренду
+  '''
   return rentals.get_rental_total_cost(rental_data)
 
 
@@ -274,14 +309,18 @@ def calc_rental_total_cost_for_manager(
   path="/c/rentals",
   response_model=Rental_Return,
   summary="Бронирование авто для себя",
-  tags=["Клиент"],
+  tags=["Клиент", "Основные"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
 )
 def create_rental_for_client(
-  rental_data: Rental_Create,
+  rental_data: Rental_Create = b_rental_create,
   rentals: Rental_UseCases = Depends(get_rental_use_cases),
   claims: TokenData = Depends(auth(UserRole.CLIENT)),
 ):
+  '''
+  Бронирование авто клиентом для самого себя. После создания клиент не может обновить или удалить аренду, 
+  может только ее отменить.
+  '''
   return rentals.create_rental(claims.user_id, claims.user_id, rental_data)
 
 

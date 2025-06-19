@@ -266,22 +266,30 @@ with get_db().__next__() as session:
 
   # Reviews
   reviews = [
-      Review(
-          car_id=2,
-          user_id=3,
-          rating=4,
-          comment="Great car but a bit expensive",
-      ),
-      Review(
-          car_id=1,
-          user_id=4,
-          rating=5,
-          comment="Perfect car for family trips",
-      )
+    Review(car_id=1, user_id=3, rating=5, comment="Toyota Camry - отличный автомобиль, очень комфортный и надежный."),
+    Review(car_id=2, user_id=4, rating=4, comment="Kia Rio хорошая машина за свои деньги, но немного шумная на трассе."),
+    Review(car_id=3, user_id=3, rating=5, comment="Hyundai Creta - идеальный кроссовер для города и легкого бездорожья."),
+    Review(car_id=4, user_id=4, rating=3, comment="Volkswagen Polo неплох, но салон мог бы быть и поудобнее."),
+    Review(car_id=5, user_id=3, rating=4, comment="Skoda Octavia - просторный багажник и отличная динамика."),
+    Review(car_id=6, user_id=4, rating=5, comment="BMW X5 - это просто мечта, лучший в своем классе!"),
+    Review(car_id=7, user_id=3, rating=4, comment="Audi A4 - стильный седан с отличной управляемостью."),
+    Review(car_id=8, user_id=4, rating=5, comment="Mercedes C-Class - роскошь и комфорт в каждом километре."),
+    Review(car_id=9, user_id=3, rating=2, comment="Lada Granta - дешево и сердито, но качество сборки хромает."),
+    Review(car_id=10, user_id=4, rating=4, comment="Renault Duster - неубиваемый внедорожник за разумные деньги."),
+    Review(car_id=11, user_id=3, rating=3, comment="Ford Focus - нормальная машина, но расход топлива высоковат."),
+    Review(car_id=12, user_id=4, rating=5, comment="Mazda CX-5 - японское качество и красивый дизайн."),
+    Review(car_id=13, user_id=3, rating=4, comment="Nissan Qashqai - удобный и практичный семейный кроссовер."),
+    Review(car_id=14, user_id=4, rating=5, comment="Toyota RAV4 - надежность и комфорт в одном флаконе."),
+    Review(car_id=15, user_id=3, rating=5, comment="Chevrolet Camaro - мощь и стиль, настоящий спортивный автомобиль!"),
+    Review(car_id=16, user_id=4, rating=4, comment="Volkswagen Tiguan - отличный немецкий кроссовер среднего класса."),
+    Review(car_id=17, user_id=3, rating=3, comment="Hyundai Solaris - бюджетный вариант без особых изысков."),
+    Review(car_id=18, user_id=4, rating=4, comment="Kia Sportage - хороший выбор для тех, кто ценит соотношение цены и качества."),
+    Review(car_id=19, user_id=3, rating=5, comment="BMW 3 Series - идеальное сочетание динамики и комфорта."),
+    Review(car_id=20, user_id=4, rating=4, comment="Audi Q5 - премиальный кроссовер с отличной управляемостью."),
   ]
 
   for item in reviews:
-    Meta.add_meta(item, 1)
+    Meta.add_meta(item, item.user_id)
 
   session.add_all(reviews)
 

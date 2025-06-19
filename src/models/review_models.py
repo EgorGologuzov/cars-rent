@@ -11,7 +11,7 @@ class Review(Base):
   car_id = Column(Integer, ForeignKey("cars.id"), nullable=False)
   user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
   rating = Column(Integer, nullable=False)
-  comment = Column(String, nullable=False)
+  comment = Column(String(2048), nullable=False)
 
   meta = Column(String(1024), nullable=False)
 

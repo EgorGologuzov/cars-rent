@@ -15,22 +15,22 @@ rf_status = Field(..., example=CarStatus.RENTED)
 f_status = Field(None, example=CarStatus.RENTED)
 
 
-class Car_ReturnForClients(BaseModel):
+class Car_ReturnFor_Client(BaseModel):
   id: int
-  brand: str | None
-  model: str | None
-  year: int | None
-  type: CarType | None
+  brand: Optional[str]
+  model: Optional[str]
+  year: Optional[int]
+  type: Optional[CarType]
   price_per_day: float
   status: CarStatus
 
 
-class Car_ReturnForManagers(BaseModel):
+class Car_ReturnFor_Manager(BaseModel):
   id: int
-  brand: str | None
-  model: str | None
-  year: int | None
-  type: CarType | None
+  brand: Optional[str]
+  model: Optional[str]
+  year: Optional[int]
+  type: Optional[CarType]
   price_per_day: float
   status: CarStatus
   meta: Meta
@@ -52,4 +52,15 @@ class Car_Update(BaseModel):
   type: Optional[CarType] = f_type
   price_per_day: Optional[float] = f_price_per_day
   status: Optional[CarStatus] = f_status
+
+
+class Car_ReturnIn_Rental(BaseModel):
+  id: int
+  brand: str = f_brand
+  model: str = f_model
+  year: int = f_year
+  type: str = f_type
+  price_per_day: float = rf_price_per_day
+
+  # model_config = ConfigDict(from_attributes=True)
 

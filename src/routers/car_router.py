@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Path, Query
 from typing import List, Optional
-from schemas import Car_ReturnForClients, Car_ReturnForManagers, Car_Create, Car_Update, Message
+from schemas import Car_ReturnFor_Client, Car_ReturnFor_Manager, Car_Create, Car_Update, Message
 from models import CarType, CarStatus
 from database import get_db
 from usecases import Car_UseCases
@@ -75,7 +75,7 @@ def get_car_use_cases(db = Depends(get_db)):
 
 @router.get(
   path="/c/cars",
-  response_model=List[Car_ReturnForClients],
+  response_model=List[Car_ReturnFor_Client],
   summary="Получение списка автомобилей",
   tags=["Клиент"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
@@ -94,7 +94,7 @@ def get_cars_for_clients(
 
 @router.get(
   path="/c/cars/{car_id}",
-  response_model=Car_ReturnForClients,
+  response_model=Car_ReturnFor_Client,
   summary="Получение автомобиля по id",
   tags=["Клиент"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
@@ -110,7 +110,7 @@ def get_car_for_clients(
 
 @router.get(
   path="/m/cars",
-  response_model=List[Car_ReturnForManagers],
+  response_model=List[Car_ReturnFor_Manager],
   summary="Получение списка автомобилей",
   tags=["Менеджер"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
@@ -129,7 +129,7 @@ def get_cars_for_managers(
 
 @router.get(
   path="/m/cars/{car_id}",
-  response_model=Car_ReturnForManagers,
+  response_model=Car_ReturnFor_Manager,
   summary="Получение автомобиля по id",
   tags=["Менеджер"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
@@ -144,7 +144,7 @@ def get_car_for_managar(
 
 @router.post(
   path="/m/cars",
-  response_model=Car_ReturnForManagers,
+  response_model=Car_ReturnFor_Manager,
   summary="Добавление автомобиля",
   tags=["Менеджер"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
@@ -159,7 +159,7 @@ def add_car(
 
 @router.put(
   path="/m/cars/{car_id}",
-  response_model=Car_ReturnForManagers,
+  response_model=Car_ReturnFor_Manager,
   summary="Обновление данных автомобиля",
   tags=["Менеджер"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
@@ -176,7 +176,7 @@ def update_car(
 @router.delete(
   path="/m/cars/{car_id}",
   response_model=Message,
-  summary="Удаление автомобиля из базы данных",
+  summary="Удаление автомобиля",
   tags=["Менеджер"],
   openapi_extra={"security": PROTECTED_ENDPOINT_SECURITY},
 )

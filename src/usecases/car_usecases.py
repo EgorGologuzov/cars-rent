@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from models import Car
 from utils import HttpResponse
 from schemas import Meta, Car_Create, Car_Update
@@ -36,7 +37,7 @@ class Car_UseCases:
     if min_year:
       query = query.filter(Car.year >= min_year)
 
-    cars = query.offset(page * limit).limit(limit).all()
+    cars = query.order_by(desc(Car.id)).offset(page * limit).limit(limit).all()
     Meta.deserialize_meta_foreach(cars)
 
     return cars

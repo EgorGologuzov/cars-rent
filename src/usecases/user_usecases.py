@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from models import User
 from utils import HttpResponse
 from schemas import Meta
@@ -38,7 +39,7 @@ class User_UseCases:
     if role:
       query = query.filter(User.role == role)
 
-    users = query.offset(page * limit).limit(limit).all()
+    users = query.order_by(desc(User.id)).offset(page * limit).limit(limit).all()
     Meta.deserialize_meta_foreach(users)
 
     return users

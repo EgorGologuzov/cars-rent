@@ -49,3 +49,9 @@ class SignUpData(BaseModel):
   full_name: str = rf_full_name
   password: str = rf_password
 
+
+class User_ReturnIn_Rental(BaseModel):
+  id: int
+  email: str = rf_email
+  full_name: str = f_full_name
+
